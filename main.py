@@ -7,6 +7,7 @@ from downloadData import Connection
 if __name__ == '__main__':
     con = Connection()
     soup = con.parse_html("https://www.otomoto.pl/osobowe")
-    con.get_pagination(soup)
+    lastpage = con.get_pagination(soup)
+    con.get_all_car(lastpage)
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
