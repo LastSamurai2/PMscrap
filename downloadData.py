@@ -36,10 +36,18 @@ class Connection:
                 car_link_table.append(car_link)
         print(car_link_table)
         return car_link_table
-                #print("Found the URL:", result[0]['href'])
-            # h2_article = all_articles.find("h2")
-            # for a in h2_article.find_all('a', href=True):
-            #     print("Found the URL:", a['href'])
+
+    def get_car_info(self, car_link_table):
+        # for url in car_link_table:
+        # for url in range(len(car_link_table)):
+        for url in range(1):
+            soup = self.parse_html(car_link_table[url])
+            print(soup)
+
+            # print("Found the URL:", result[0]['href'])
+        # h2_article = all_articles.find("h2")
+        # for a in h2_article.find_all('a', href=True):
+        #     print("Found the URL:", a['href'])
 
     # if r.status_code == 200:
     #     html_to_parse = r.text
