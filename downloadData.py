@@ -2,8 +2,12 @@ import requests
 import time
 from bs4 import BeautifulSoup
 import pandas as pd
+import concurrent.futures
+
+
 
 class Connection:
+    MAX_THREADS = 30
 
     def parse_html(self,url):
         r = requests.get(url)
@@ -23,7 +27,7 @@ class Connection:
     def get_all_car(self,last_page):
         start = time.time()
         car_link_table = []
-        pages = list(range(1,5))
+        pages = list(range(1,33))
         for page in pages:
             url="https://www.otomoto.pl/osobowe?page="+str(page)
             print(url)
@@ -54,8 +58,11 @@ class Connection:
         title = soup.find("title").text
         price_tag = soup.find("div", {"class": "offer-header__row"}).find("div", {"class": "offer-price"})
         price = price_tag["data-price"]
-        photo_tag = soup.find("div", {"class": "photo-item"}).find("img")
-        photo = photo_tag["data-lazy"]
+        if soup.find("div", {"class": "photo-item"}).find("img") is None:
+            photo="brak"
+        else:
+            photo_tag = soup.find("div", {"class": "photo-item"}).find("img")
+            photo = photo_tag["data-lazy"]
         info_dict = {"title": title, "price": price, "photo": photo}
         all_details = soup.find("div", {"class": "parametersArea"}).find("div", {"class": "offer-params"})
         params_label = all_details.findAll("span", {"class": "offer-params__label"})
@@ -68,17 +75,30 @@ class Connection:
             info_dict[label] = value
         return info_dict
 
-    def prepare_data(self,car_link_table):
-        start = time.time()
+    def test(self,car_link_table):
         list_of_car = []
         for car in car_link_table:
             print(car)
             car_data = self.get_car_info(car)
             list_of_car.append(car_data)
+
+    def prepare_data(self,car_link_table):
+        start = time.time()
+        list_of_car = []
+        threads = min(self.MAX_THREADS, len(car_link_table))
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as executor:
+            for feature in executor.map(self.get_car_info, car_link_table):
+                list_of_car.append(feature)
+
+        # for car in car_link_table:
+        #     print(car)
+        #     car_data = self.get_car_info(car)
+        #     list_of_car.append(car_data)
         end = time.time()
         print("Czas popbrania informacji dla " + str(len(car_link_table)) + " aut: ", end - start)
         final_df = pd.DataFrame(list_of_car)
-        final_df.to_csv("filename.csv")
+        final_df.to_csv("filename2.csv")
 
 
             # print("Found the URL:", result[0]['href'])
